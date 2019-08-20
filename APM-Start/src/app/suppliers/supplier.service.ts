@@ -21,7 +21,10 @@ export class SupplierService {
   );
 
   constructor(private http: HttpClient) {
-    this.suppliersWithMap$.subscribe(item => console.log('map result', item));
+    // this.suppliersWithMap$.subscribe(item => console.log('map result', item));
+    this.suppliersWithConcatMap$.subscribe(item =>
+      console.log('concatMap result', item)
+    );
   }
 
   private handleError(err: any) {
