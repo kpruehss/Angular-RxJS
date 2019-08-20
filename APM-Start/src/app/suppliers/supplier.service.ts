@@ -11,10 +11,6 @@ import { Supplier } from './supplier';
 export class SupplierService {
   suppliersUrl = 'api/suppliers';
 
-  suppliersWithMap$ = of(1, 5, 8).pipe(
-    map(id => this.http.get<Supplier>(`${this.suppliersUrl}/${id}`))
-  );
-
   suppliersWithConcatMap$ = of(1, 5, 8).pipe(
     tap(id => console.log('concatMap source Observable', id)),
     concatMap(id => this.http.get<Supplier>(`${this.suppliersUrl}/${id}}`))
@@ -31,7 +27,6 @@ export class SupplierService {
   );
 
   constructor(private http: HttpClient) {
-    // this.suppliersWithMap$.subscribe(item => console.log('map result', item));
     this.suppliersWithConcatMap$.subscribe(item =>
       console.log('concatMap result', item)
     );
