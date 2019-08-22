@@ -8,8 +8,19 @@ import {
   BehaviorSubject,
   Subject,
   merge,
+  from,
 } from 'rxjs';
-import { catchError, tap, map, scan, shareReplay } from 'rxjs/operators';
+import {
+  catchError,
+  tap,
+  map,
+  scan,
+  shareReplay,
+  mergeMap,
+  toArray,
+  filter,
+  switchMap,
+} from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
@@ -80,13 +91,32 @@ export class ProductService {
     this.productInsertedAction$
   ).pipe(scan((acc: Product[], value: Product) => [...acc, value]));
 
-  selectedProductSuppliers$ = combineLatest([
-    this.selectedProduct$,
-    this.supplierService.suppliers$,
-  ]).pipe(
-    map(([selectedProduct, suppliers]) =>
-      suppliers.filter(supplier =>
-        selectedProduct.supplierIds.includes(supplier.id)
+  // ! GET IT ALL APPROACH
+  // * Use this method with smaller datasets
+  // selectedProductSuppliers$ = combineLatest([
+  //   this.selectedProduct$,
+  //   this.supplierService.suppliers$,
+  // ]).pipe(
+  //   map(([selectedProduct, suppliers]) =>
+  //     suppliers.filter(supplier =>
+  //       selectedProduct.supplierIds.includes(supplier.id)
+  //     )
+  //   )
+  // );
+
+  // ! JUST IN TIME APPROACH
+  // * Use this method with large datasets
+  selectedProductSuppliers$ = this.selectedProduct$.pipe(
+    filter(selectedProduct => Boolean(selectedProduct)),
+    switchMap(selectedProduct =>
+      from(selectedProduct.supplierIds).pipe(
+        mergeMap(supplierId =>
+          this.http.get<Supplier>(`${this.suppliersUrl}/${supplierId}`)
+        ),
+        toArray(),
+        tap(suppliers =>
+          console.log('product suppliers', JSON.stringify(suppliers))
+        )
       )
     )
   );
